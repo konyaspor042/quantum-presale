@@ -11,6 +11,7 @@ const TOKEN_PRICE = 0.02;
 const BONUS = 0.25;
 const TOTAL_SUPPLY = 2625000000;
 
+// MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser:true, useUnifiedTopology:true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console,'MongoDB connection error:'));
@@ -32,6 +33,7 @@ const User = mongoose.model('User', userSchema);
 app.use(cors());
 app.use(bodyParser.json());
 
+// NOWPayments webhook
 app.post('/webhook/nowpayments', async (req,res)=>{
     const data = req.body;
     if(data.status === 'finished'){
@@ -48,6 +50,7 @@ app.post('/webhook/nowpayments', async (req,res)=>{
     res.sendStatus(200);
 });
 
+// Kullanıcı token sorgusu
 app.get('/api/user-tokens/:wallet', async (req,res)=>{
     const wallet = req.params.wallet;
     const user = await User.findOne({wallet});
@@ -56,6 +59,7 @@ app.get('/api/user-tokens/:wallet', async (req,res)=>{
     res.json({ totalTokens });
 });
 
+// Presale durumu
 app.get('/api/presale-status', async (req,res)=>{
     const users = await User.find();
     let totalSold = 0;
