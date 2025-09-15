@@ -1,72 +1,69 @@
-require('dotenv').config();
+// server.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+require('dotenv').config();
+
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-const TOKEN_PRICE = 0.02;
-const BONUS = 0.25;
-const TOTAL_SUPPLY = 2625000000;
-
-// MongoDB bağlantısı
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser:true, useUnifiedTopology:true });
-const db = mongoose.connection;
-db.on('error', console.error.bind(console,'MongoDB connection error:'));
-db.once('open',()=> console.log('MongoDB connected'));
-
-const paymentSchema = new mongoose.Schema({
-  date: { type: Date, default: Date.now },
-  usd: Number,
-  tokens: Number
-});
-
-const userSchema = new mongoose.Schema({
-  wallet: { type: String, required:true, unique:true },
-  payments: [paymentSchema]
-});
-
-const User = mongoose.model('User', userSchema);
-
 app.use(cors());
 app.use(bodyParser.json());
 
-// NOWPayments webhook
-app.post('/webhook/nowpayments', async (req,res)=>{
-    const data = req.body;
-    if(data.status === 'finished'){
-        const wallet = data.order_id;
-        const usd = parseFloat(data.price_amount);
-        const tokens = Math.round(usd / TOKEN_PRICE);
-        const totalWithBonus = Math.round(tokens * (1+BONUS));
+// MongoDB bağlantısı
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(()=> console.log("MongoDB connected"))
+  .catch(err=> console.error("MongoDB connection error:", err));
 
-        let user = await User.findOne({wallet});
-        if(!user) user = new User({wallet,payments:[]});
-        user.payments.push({usd,tokens:totalWithBonus});
-        await user.save();
-    }
-    res.sendStatus(200);
+// Schemas
+const paymentSchema = new mongoose.Schema({
+  wallet: String,
+  usd: Number,
+  tokens: Number,
+  status: String, // pending, finished, failed
+  date: { type: Date, default: Date.now }
 });
 
-// Kullanıcı token sorgusu
+const Payment = mongoose.model('Payment', paymentSchema);
+
+// Kullanıcı token bilgisi endpoint
 app.get('/api/user-tokens/:wallet', async (req,res)=>{
-    const wallet = req.params.wallet;
-    const user = await User.findOne({wallet});
-    let totalTokens = 0;
-    if(user) totalTokens = user.payments.reduce((sum,p)=> sum + p.tokens,0);
-    res.json({ totalTokens });
+  const wallet = req.params.wallet;
+  const payments = await Payment.find({wallet});
+  const totalTokens = payments.reduce((sum,p)=>sum+(p.tokens||0),0);
+  res.json({ wallet, totalTokens, history: payments });
 });
 
 // Presale durumu
 app.get('/api/presale-status', async (req,res)=>{
-    const users = await User.find();
-    let totalSold = 0;
-    users.forEach(u=> totalSold += u.payments.reduce((sum,p)=> sum + p.tokens,0));
-    const remaining = Math.max(0,TOTAL_SUPPLY - totalSold);
-    const percent = Math.round(totalSold/TOTAL_SUPPLY*100);
-    res.json({ totalSold, remaining, percent, totalSupply: TOTAL_SUPPLY });
+  const TOTAL = 2625000000;
+  const sold = await Payment.aggregate([{ $group: {_id:null, total:{$sum:"$tokens"}}}]);
+  const soldTokens = sold[0] ? sold[0].total : 0;
+  const remaining = TOTAL - soldTokens;
+  const percent = Math.round((soldTokens/TOTAL)*100);
+  res.json({ remaining, percent });
 });
 
-app.listen(PORT, ()=> console.log(`Server running on port ${PORT}`));
+// NOWPayments webhook
+app.post('/api/payment-webhook', async (req,res)=>{
+  const data = req.body;
+  console.log("Webhook received:", data);
+
+  // Example: data includes order_id=wallet, price_amount, price_currency
+  const wallet = data.order_id;
+  const usd = parseFloat(data.price_amount || 0);
+  const tokens = Math.round(usd/0.02 * 1.25); // 25% bonus
+
+  const statusMap = {
+    'waiting': 'pending',
+    'confirmed': 'finished',
+    'failed': 'failed'
+  };
+  const status = statusMap[data.payment_status] || 'pending';
+
+  await Payment.create({ wallet, usd, tokens, status });
+  res.sendStatus(200);
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, ()=>console.log(`Server running on port ${PORT}`));
