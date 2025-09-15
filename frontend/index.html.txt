@@ -1,126 +1,322 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Quantum Network Presale</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quantum • User Panel (Bonus & History)</title>
 <style>
-body { font-family:Arial,sans-serif; background: radial-gradient(circle at top,#0f0c29,#302b63,#24243e); color:#00f0ff; text-align:center; padding:40px; }
-h1 { font-size:2.4em; color:#0ff; text-shadow:0 0 5px #0ff,0 0 20px #f0f; margin-bottom:10px; }
-.controls { margin:20px auto; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
-input { padding:10px 12px; border-radius:8px; border:none; min-width:260px; text-align:center; }
-button { padding:12px 18px; font-size:1em; color:#fff; background:linear-gradient(45deg,#ff00ff,#00ffff); border:none; border-radius:10px; cursor:pointer; box-shadow:0 0 10px #ff00ff; }
-.panel { margin-top:24px; display:none; background:rgba(0,0,0,0.85); padding:22px; border-radius:14px; min-width:350px; box-shadow:0 0 30px #00ffff; color:#00ffea; text-align:left; }
-.token-box { margin:14px 0; padding:14px; background:rgba(255,255,255,0.03); border-radius:12px; text-align:center; }
-.token-amount { font-size:2.4em; font-weight:700; color:#0ff; text-shadow:0 0 10px #0ff; animation:pulse 1.5s infinite; }
-.bonus-note { font-size:0.85em; color:#ff00ff; margin-top:6px; }
-.payment-history { margin-top:18px; font-size:0.9em; }
-table { width:100%; border-collapse:collapse; }
-th, td { padding:4px 6px; text-align:center; font-size:0.9em; }
-th { color:#ff00ff; text-shadow:0 0 5px #ff00ff; }
-td { color:#0ff; }
-.success-message { display:none; color:#0f0; margin-top:10px; text-align:center;}
-@keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.08);} 100%{transform:scale(1);} }
-.small { font-size:0.85em; color:#9ff; }
+  :root{
+    --bg:#080810;
+    --card:#0f1220;
+    --muted:#9fe7ff;
+    --accent1:#00f0ff;
+    --accent2:#ff00cc;
+    --glass: rgba(255,255,255,0.03);
+    --success:#2ecc71;
+    --danger:#ff3860;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:
+    radial-gradient(circle at 10% 10%, rgba(0,240,255,0.04), transparent 10%),
+    radial-gradient(circle at 90% 90%, rgba(255,0,204,0.03), transparent 10%),
+    var(--bg); color:var(--muted); -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1100px;margin:24px auto;padding:14px;}
+  header {display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  h1{margin:0;font-size:20px;color:var(--accent1);letter-spacing:0.6px}
+  .sub{color:#9fd9e6;font-size:13px}
+  .topline{display:flex;gap:12px;align-items:center}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+  .controls{display:flex;gap:10px;align-items:center}
+  input[type=text]{background:var(--glass);border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:var(--muted);min-width:220px}
+  button.btn{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.45);font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px}
+  .col-4{grid-column:span 4}
+  .col-8{grid-column:span 8}
+  .small{font-size:13px;color:#9fd9e6}
+  .stat{padding:12px;border-radius:10px;background:var(--glass);text-align:center}
+  .stat h3{margin:0;color:var(--accent1);font-size:16px}
+  .stat p{margin:6px 0 0 0;font-weight:700;font-size:18px;color:#e6faff}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+  th,td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left}
+  th{color:var(--accent2);font-weight:600}
+  .toast-wrap{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:9999}
+  .toast{background:#081018;color:#cfeefc;padding:10px 14px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.6);border-left:4px solid var(--accent1)}
+  .muted{color:#8fbfd0;font-size:13px}
+  .countdown{font-weight:700;color:var(--accent2);font-size:16px}
+  @media(max-width:900px){
+    .grid{grid-template-columns:repeat(6,1fr)}
+    .col-4{grid-column:span 6}
+    .col-8{grid-column:span 6}
+    .controls{flex-direction:column;align-items:stretch}
+    input[type=text]{width:100%}
+  }
 </style>
 </head>
 <body>
 
-<h1>Quantum Network Presale</h1>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Quantum Network • User Panel</h1>
+      <div class="sub">Token Price: <strong>0.02 USD</strong> • Bonus: <strong>25%</strong></div>
+    </div>
 
-<div class="controls">
-  <input id="walletAddress" placeholder="Cüzdan Adresi (Opsiyonel)"/>
-  <button id="buyBtn">Buy Now</button>
+    <div class="topline">
+      <div class="controls card">
+        <input id="walletInput" type="text" placeholder="Wallet address or 'Connect Wallet'">
+        <button id="connectBtn" class="btn">Connect Wallet</button>
+        <button id="buyBtn" class="btn" style="background:linear-gradient(90deg,var(--accent1),var(--accent2))">Buy</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="col-4">
+      <div class="card stat">
+        <h3>Total Tokens (With Bonus)</h3>
+        <p id="totalToken">0</p>
+        <div class="small muted">QNTM • User Balance</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h4 class="small">Presale Status</h4>
+        <div style="margin-top:8px">
+          <div class="small">Total Supply: <strong>2,625,000,000</strong> QNTM</div>
+          <div class="small">Remaining: <strong id="remainingSupply">-</strong></div>
+          <div style="margin-top:8px">
+            <div style="height:12px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden">
+              <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent1),var(--accent2));transition:width:800ms"></div>
+            </div>
+            <div class="small" style="margin-top:8px">Presale Progress: <strong id="progressPercent">0%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h4 class="small">Referral Link</h4>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <input id="refInput" readonly type="text" style="background:var(--glass);border-radius:8px;padding:8px;color:var(--muted);min-width:140px;border:1px solid rgba(255,255,255,0.03)" />
+          <button id="copyRef" class="btn" style="padding:8px 10px">Copy</button>
+        </div>
+        <div class="small muted" style="margin-top:8px">Referral bonuses are applied by the backend.</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h4 class="small">Countdown</h4>
+        <div style="margin-top:8px">
+          <div>Time remaining until presale ends:</div>
+          <div class="countdown" id="countdown">-- days --:--:--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-8">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;color:var(--accent2)">Account Summary</h3>
+          <div class="small muted">Last update: <span id="lastUpdated">—</span></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:14px;align-items:flex-start">
+          <div style="flex:1">
+            <div style="margin-bottom:10px" class="small muted">Purchase History</div>
+            <div style="overflow:auto;max-height:300px">
+              <table id="historyTable">
+                <thead><tr><th>Date</th><th>USD</th><th>Token</th><th>Bonus</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="width:260px">
+            <div class="card small" style="margin:0;padding:10px">
+              <div style="display:flex;justify-content:space-between"><span>Last Purchase</span><strong id="lastBuy">—</strong></div>
+              <div style="margin-top:8px" class="small muted">Status: <span id="lastStatus">—</span></div>
+              <div style="margin-top:8px" class="small muted">Total Payments: <strong id="totalPayments">0</strong> USD</div>
+              <button id="claimBtn" class="btn" style="margin-top:10px" disabled>Claim Tokens</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="panel" id="userPanel">
-  <h2>User Panel</h2>
-  <p><strong>Wallet:</strong> <span id="userWallet">-</span></p>
-  <p><strong>Payment Status:</strong> <span id="status">Pending</span></p>
-
-  <div class="token-box">
-    <div id="totalToken" class="token-amount">0</div>
-    <div class="bonus-note">+25% BONUS INCLUDED</div>
-  </div>
-
-  <div class="payment-history">
-    <h3>Payment History</h3>
-    <table id="historyTable" border="0" cellspacing="0" cellpadding="4">
-      <thead>
-        <tr>
-          <th style="text-align:left;">Date</th>
-          <th>USD</th>
-          <th>Tokens</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <div style="text-align:center; margin-top:12px;">
-    <button id="claimBtn" disabled>Claim Tokens</button>
-  </div>
-
-  <div id="successMessage" class="success-message">🎉 Payment received! Tokens will arrive shortly.</div>
-</div>
+<div class="toast-wrap" id="toasts"></div>
 
 <script>
-const TOKEN_PRICE = 0.02;
-const BONUS = 0.25;
-const API_URL = "https://<YOUR_BACKEND_URL>"; // Render backend URL
+/* ======= CONFIGURE BELOW ======= */
+const BACKEND_URL = "https://<YOUR_RENDER_BACKEND_URL>";
+const NOWPAYMENTS_KEY = "964481a2-1e3c-4ee2-b5f7-bf133f23c22d";
+const SALE_END = "2025-12-31T23:59:59Z";
 
-const buyBtn = document.getElementById("buyBtn");
-const walletInput = document.getElementById("walletAddress");
-const userPanel = document.getElementById("userPanel");
-const userWalletEl = document.getElementById("userWallet");
-const statusEl = document.getElementById("status");
-const totalTokenEl = document.getElementById("totalToken");
-const historyTbody = document.querySelector("#historyTable tbody");
-const claimBtn = document.getElementById("claimBtn");
-const successMessageEl = document.getElementById("successMessage");
+/* ======= END CONFIG ======= */
 
-let pollingInterval;
+const walletInput = document.getElementById('walletInput');
+const connectBtn = document.getElementById('connectBtn');
+const buyBtn = document.getElementById('buyBtn');
+const totalTokenEl = document.getElementById('totalToken');
+const remainingSupplyEl = document.getElementById('remainingSupply');
+const progressBar = document.getElementById('progressBar');
+const progressPercent = document.getElementById('progressPercent');
+const refInput = document.getElementById('refInput');
+const copyRef = document.getElementById('copyRef');
+const lastUpdated = document.getElementById('lastUpdated');
+const historyTbody = document.querySelector('#historyTable tbody');
+const lastBuyEl = document.getElementById('lastBuy');
+const lastStatusEl = document.getElementById('lastStatus');
+const totalPaymentsEl = document.getElementById('totalPayments');
+const claimBtn = document.getElementById('claimBtn');
+const toasts = document.getElementById('toasts');
 
-buyBtn.addEventListener("click", ()=>{
-    const usd = parseFloat(prompt("Enter USD to spend:", "10"));
-    if(!usd || usd<=0) return alert("Lütfen geçerli bir USD miktarı girin.");
-    const wallet = walletInput.value.trim() || "default_"+Date.now();
+let pollingInterval = null;
+let userState = { wallet: null, totalTokens: 0, history: [] };
 
-    userPanel.style.display = "block";
-    userWalletEl.innerText = wallet;
-    statusEl.innerText = "Awaiting Payment...";
-    totalTokenEl.innerText = "0";
-    successMessageEl.style.display = "none";
+function toast(msg, ttl=4500){
+  const d = document.createElement('div'); d.className='toast'; d.innerText = msg;
+  toasts.appendChild(d);
+  setTimeout(()=> d.style.opacity='0', ttl-600);
+  setTimeout(()=> d.remove(), ttl);
+}
 
-    const nowUrl = `https://nowpayments.io/donation?api_key=HZJTX1G-57W45J2-KTM52WF-8BDMY3N&amount=${usd}&order_id=${wallet}`;
-    window.open(nowUrl,"_blank");
+function shortAddr(a){ if(!a) return '-'; if(a.length>12) return a.slice(0,6)+'...'+a.slice(-4); return a; }
 
-    if(pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(async ()=>{
-        try{
-            const res = await fetch(`${API_URL}/api/user-tokens/${encodeURIComponent(wallet)}`);
-            const data = await res.json();
-            if(data.totalTokens > 0){
-                totalTokenEl.innerText = data.totalTokens.toLocaleString();
-                statusEl.innerText = "Payment Successful!";
-                successMessageEl.style.display = "block";
-
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${new Date().toLocaleString()}</td><td>${usd}</td><td>${data.totalTokens}</td>`;
-                historyTbody.appendChild(tr);
-
-                claimBtn.disabled = false;
-                claimBtn.onclick = ()=>{ alert("Tokens claimed to your wallet! 🎉"); claimBtn.disabled = true; };
-
-                clearInterval(pollingInterval);
-            }
-        }catch(err){
-            console.error(err);
-            statusEl.innerText = "Server Error!";
-        }
-    },3000);
+connectBtn.addEventListener('click', async ()=>{
+  if(window.ethereum){
+    try{
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const w = accounts[0];
+      walletInput.value = w;
+      toast("Wallet connected: " + shortAddr(w));
+      startPolling(w);
+      refInput.value = `${location.origin}?ref=${encodeURIComponent(w)}`;
+      localStorage.setItem('q_wallet', w);
+    }catch(e){ toast("Wallet connection cancelled"); }
+  } else {
+    toast("Metamask not found. Enter wallet manually.");
+  }
 });
-</script>
 
+copyRef.addEventListener('click', ()=>{
+  const url = refInput.value;
+  if(!url) return toast("Enter wallet first");
+  navigator.clipboard.writeText(url).then(()=> toast("Referral link copied"));
+});
+
+buyBtn.addEventListener('click', ()=>{
+  const wallet = walletInput.value.trim();
+  if(!wallet) return toast("Enter wallet address first");
+  const usdStr = prompt("Enter USD amount to invest:", "10");
+  const usd = parseFloat(usdStr);
+  if(!usd || usd <= 0) return toast("Enter a valid amount");
+  const link = `https://nowpayments.io/donation?api_key=${NOWPAYMENTS_KEY}&amount=${encodeURIComponent(usd)}&order_id=${encodeURIComponent(wallet)}`;
+  window.open(link, "_blank");
+  toast("Payment window opened. Panel will update after completion.");
+  startPolling(wallet);
+});
+
+function startPolling(wallet){
+  if(pollingInterval) clearInterval(pollingInterval);
+  fetchUser(wallet);
+  pollingInterval = setInterval(()=> fetchUser(wallet), 3000);
+  localStorage.setItem('q_wallet', wallet);
+}
+
+async function fetchUser(wallet){
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/user-tokens/${encodeURIComponent(wallet)}`);
+    if(!res.ok) throw new Error('API error');
+    const data = await res.json();
+    userState.wallet = data.wallet || wallet;
+    userState.totalTokens = data.totalTokens || 0;
+    userState.history = data.history || [];
+    renderUser();
+  }catch(err){
+    console.error(err);
+  }
+}
+
+async function fetchPresaleStatus(){
+  try{
+    const r = await fetch(`${BACKEND_URL}/api/presale-status`);
+    if(!r.ok) throw new Error('Presale API error');
+    const s = await r.json();
+    const rem = s.remaining || 0;
+    const pct = s.percent || 0;
+    remainingSupplyEl.innerText = Number(rem).toLocaleString('en-US');
+    progressBar.style.width = pct + '%';
+    progressPercent.innerText = pct + '%';
+  }catch(e){
+    console.warn('Presale status not available', e);
+  }
+}
+
+function renderUser(){
+  totalTokenEl.innerText = Math.round(userState.totalTokens).toLocaleString('en-US');
+  lastUpdated.innerText = new Date().toLocaleTimeString();
+  refInput.value = `${location.origin}?ref=${encodeURIComponent(userState.wallet || '')}`;
+
+  historyTbody.innerHTML = '';
+  let totalPayments = 0;
+  userState.history.slice().reverse().forEach(item=>{
+    const usd = item.usd || 0;
+    const tokens = item.tokens || 0;
+    const baseTokens = usd / 0.02;
+    const bonus = Math.max(0, tokens - baseTokens);
+    const status = item.status || 'finished';
+    const statusLabel = status==='finished' ? `<span style="color:var(--success)">Confirmed</span>` : (status==='pending'? `<span style="color:#f0a500">Pending</span>` : `<span style="color:var(--danger)">Failed</span>`);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${new Date(item.date).toLocaleString()}</td><td>$${usd}</td><td>${Math.round(tokens)}</td><td>${Math.round(bonus)}</td><td>${statusLabel}</td>`;
+    historyTbody.appendChild(tr);
+    totalPayments += usd;
+  });
+  totalPaymentsEl.innerText = totalPayments.toFixed(2);
+
+  const last = userState.history[userState.history.length-1];
+  if(last){
+    lastBuyEl.innerText = `${Math.round(last.tokens)} QNTM`;
+    lastStatusEl.innerText = (last.status || 'finished');
+    claimBtn.disabled = !(last.status === 'finished');
+  } else {
+    lastBuyEl.innerText = '—';
+    lastStatusEl.innerText = '—';
+    claimBtn.disabled = true;
+  }
+}
+
+claimBtn.addEventListener('click', ()=>{
+  toast('Claim request sent (demo). Real integration required.');
+  claimBtn.disabled = true;
+});
+
+function startCountdown(endISO){
+  function tick(){
+    const now = new Date();
+    const end = new Date(endISO);
+    const diff = end - now;
+    if(diff <= 0){ document.getElementById('countdown').innerText = 'Presale ended'; clearInterval(cd); return; }
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hrs = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+    const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const secs = Math.floor((diff % (1000*60)) / 1000);
+    document.getElementById('countdown').innerText = `${days}d ${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+  tick();
+  const cd = setInterval(tick, 1000);
+}
+
+function init(){
+  const saved = localStorage.getItem('q_wallet');
+  if(saved){
+    walletInput.value = saved;
+    startPolling(saved);
+    toast('Wallet loaded: ' + shortAddr(saved));
+  }
+  fetchPresaleStatus();
+  startCountdown(SALE_END);
+}
+init();
+</script>
 </body>
 </html>
